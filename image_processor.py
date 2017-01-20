@@ -129,6 +129,9 @@ class ImageProcessor(object):
             plt.imsave("{}/{}.jpg".format(self.cfg.debugPrefix, img.name),
                        img.value, cmap='gray')
 
+    def regionMaskForLaneLines(self, img):
+        pass
+
     @classmethod
     def getImageProcessor(cls):
         import config
