@@ -19,23 +19,25 @@ class Image(object):
         if img is None and fname:
             img = cv2.imread(fname)
         self._stages = ['original']
-        self._stageMap = {
+        self._stage_map = {
             'original': img
         }
         self.name = 'original'
         self.value = img
-        self.perspectiveTransformMat = None
-        self.invPerspectiveTransformMat = None
+        self.perspective_transform_mat = None
+        self.inv_perspective_transform_mat = None
+        self.lane_pixels = None
+        self.lane_fit = None
 
-    def addStage(self, name, value, isNewCurr=True):
+    def add_stage(self, name, value, isNewCurr=True):
         self._stages.append(name)
-        self._stageMap[name] = value
+        self._stage_map[name] = value
         if isNewCurr:
             self.name = name
             self.value = value
 
-    def imageForStage(self, name):
-        return self._stageMap[name]
+    def image_for_stage(self, name):
+        return self._stage_map[name]
 
 
 if __name__ == "__main__":
