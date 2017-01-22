@@ -292,6 +292,9 @@ class ImageProcessor(object):
             'right': right_fit
         }
 
+    def curvature_vehicle_pos(self, img):
+        pass
+
     def transform(self, img):
         if self.cfg.debug:
             # cv2.imwrite("{}/{}.jpg".format(prefix, img.name), img.value)
@@ -312,6 +315,7 @@ class ImageProcessor(object):
 
         # Determine curvature of the lane and vehicle position with respect to
         # center.
+        self.curvature_vehicle_pos(img)
 
         # Warp the detected lane boundaries back onto the original image.
 
