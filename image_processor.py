@@ -28,6 +28,7 @@ Ideas
 import cv2
 import numpy as np
 import os
+import os.path
 
 import matplotlib.pyplot as plt
 
@@ -44,7 +45,7 @@ class ImageProcessor(object):
         self.cameraCalibrator = cameraCalibrator
         self.sobelKsize = 5
         self.cfg = config
-        if self.cfg.debug:
+        if self.cfg.debug and not os.path.exists(self.cfg.debugPrefix):
             os.makedirs(self.cfg.debugPrefix)
 
     def undistort(self, img):
@@ -111,9 +112,44 @@ class ImageProcessor(object):
         self.perspectiveTransform(img)
 
     def perspectiveTransform(self, img):
-        # TODO: find src and dst points
-        src = None
-        dst = None
+        line_len = lambda p1, p2: np.sqrt(
+            (p2[0] - p1[0]) ** 2 + (p2[1] - p1[1]) ** 2)
+
+        src = np.float32([
+            # top left
+            [586., 458.],
+
+            # top right
+            [697., 458.],
+
+            # bottom right
+            [1089., 718.],
+
+            # bottom left
+            [207., 718.]
+        ])
+
+        # l1 = line_len(src[0], src[3])
+        l2 = line_len(src[1], src[2])
+
+        rect_width = src[2][0] - src[3][0]
+        top_right = [src[2][0], src[2][1] - l2]
+
+        # print("l1: {}, l2: {}, rect_width: {}".format(l1, l2, rect_width))
+
+        dst = np.float32([
+            # top left
+            [top_right[0] - rect_width, top_right[1]],
+
+            # top right
+            top_right,
+
+            # bottom right
+            src[2],
+
+            # bottom left
+            src[3]
+        ])
         img.perspectiveTransformMat = cv2.getPerspectiveTransform(src, dst)
         img.invPerspectiveTransformMat = cv2.getPerspectiveTransform(dst, src)
         h, w = img.imageForStage('original').value.shape[:2]
