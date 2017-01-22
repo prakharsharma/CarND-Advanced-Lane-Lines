@@ -12,7 +12,10 @@ debugPrefix = './debug'
 sobelKsize = 3
 
 # threshold for sobel X
-sxThresh = (20, 100)
+# sxThresh = (20, 100)
+sobelThresh = {
+    'x': (20, 100)
+}
 
 # threshold for S channel
 sThresh = (170, 255)

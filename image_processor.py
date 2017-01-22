@@ -62,31 +62,30 @@ class ImageProcessor(object):
             plt.imsave("{}/{}.jpg".format(self.cfg.debugPrefix, img.name),
                        img.value, cmap='gray')
 
-    def transform(self, img):
-        if self.cfg.debug:
-            # cv2.imwrite("{}/{}.jpg".format(prefix, img.name), img.value)
-            plt.imsave("{}/{}.jpg".format(self.cfg.debugPrefix, img.name),
-                       img.value, cmap='gray')
-
-        # correct for distortion
-        self.undistort(img)
-
-        # create a thresholded binary image.
-        gray = cv2.cvtColor(img.value, cv2.COLOR_BGR2GRAY)
-        sobelx = cv2.Sobel(gray, cv2.CV_64F, 1, 0, ksize=self.cfg.sobelKsize)
+    def gradientThreshold(self, img, orient='x'):
+        gray = cv2.cvtColor(img.imageForStage('undistorted'),
+                            cv2.COLOR_BGR2GRAY)
+        sobel = cv2.Sobel(
+            gray,
+            cv2.CV_64F,
+            int(orient == 'x'),
+            int(orient == 'y'),
+            ksize=self.cfg.sobelKsize
+        )
         # Absolute x derivative to accentuate lines away from horizontal
-        absSobelx = np.absolute(sobelx)
-        scaledSobel = np.uint8(255 * absSobelx / np.max(absSobelx))
+        absSobel = np.absolute(sobel)
+        scaledSobel = np.uint8(255 * absSobel / np.max(absSobel))
         # Threshold x gradient
         sxBinary = np.zeros_like(scaledSobel)
-        sxBinary[(scaledSobel >= self.cfg.sxThresh[0]) &
-                 (scaledSobel <= self.cfg.sxThresh[1])] = 1
-        img.addStage('sobelxBinary', sxBinary)
+        sxBinary[(scaledSobel >= self.cfg.sobelThresh[orient][0]) &
+                 (scaledSobel <= self.cfg.sobelThresh[orient][1])] = 1
+        img.addStage('sobel{}Binary'.format(orient), sxBinary)
         if self.cfg.debug:
             # cv2.imwrite("{}/{}.jpg".format(prefix, img.name), img.value)
             plt.imsave("{}/{}.jpg".format(self.cfg.debugPrefix, img.name),
                        img.value, cmap='gray')
 
+    def sChannelThreshold(self, img):
         hls = cv2.cvtColor(img.imageForStage('undistorted'), cv2.COLOR_BGR2HLS)
         sChannel = hls[:, :, 2]
         # Threshold color channel
@@ -99,6 +98,13 @@ class ImageProcessor(object):
             plt.imsave("{}/{}.jpg".format(self.cfg.debugPrefix, img.name),
                        img.value, cmap='gray')
 
+    def binaryThreshold(self, img):
+        self.gradientThreshold(img, 'x')
+        self.sChannelThreshold(img)
+
+        sxBinary = img.imageForStage('sobelxBinary')
+        sBinary = img.imageForStage('sChannelBinary')
+
         # Combine the two binary thresholds
         combinedBinary = np.zeros_like(sxBinary)
         combinedBinary[(sBinary == 1) | (sxBinary == 1)] = 1
@@ -107,9 +113,6 @@ class ImageProcessor(object):
             # cv2.imwrite("{}/{}.jpg".format(prefix, img.name), img.value)
             plt.imsave("{}/{}.jpg".format(self.cfg.debugPrefix, img.name),
                        img.value, cmap='gray')
-
-        # Apply a perspective transform to rectify binary image.
-        self.perspectiveTransform(img)
 
     def perspectiveTransform(self, img):
         line_len = lambda p1, p2: np.sqrt(
@@ -164,6 +167,39 @@ class ImageProcessor(object):
             # cv2.imwrite("{}/{}.jpg".format(prefix, img.name), img.value)
             plt.imsave("{}/{}.jpg".format(self.cfg.debugPrefix, img.name),
                        img.value, cmap='gray')
+
+    def detectLaneLines(self, img):
+        # detect lane pixels
+
+        # fit a polynomial around lane pixels to get an approximation for lane
+        # lines
+        pass
+
+    def transform(self, img):
+        if self.cfg.debug:
+            # cv2.imwrite("{}/{}.jpg".format(prefix, img.name), img.value)
+            plt.imsave("{}/{}.jpg".format(self.cfg.debugPrefix, img.name),
+                       img.value, cmap='gray')
+
+        # correct for distortion
+        self.undistort(img)
+
+        # create a thresholded binary image.
+        self.binaryThreshold(img)
+
+        # Apply a perspective transform to rectify binary image.
+        self.perspectiveTransform(img)
+
+        # Detect lane pixels and fit to find lane boundary.
+        self.detectLaneLines(img)
+
+        # Determine curvature of the lane and vehicle position with respect to
+        # center.
+
+        # Warp the detected lane boundaries back onto the original image.
+
+        # Output visual display of the lane boundaries and numerical estimation
+        # of lane curvature and vehicle position.
 
     def regionMaskForLaneLines(self, img):
         pass
