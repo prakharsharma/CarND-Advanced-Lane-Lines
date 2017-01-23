@@ -19,28 +19,50 @@ curvature and vehicle position.
 import argparse
 import cv2
 import glob
+import config
+
+import matplotlib.pyplot as plt
+
+from moviepy.editor import VideoFileClip
 
 from image import Image
 from image_processor import ImageProcessor
 
 
-def pipeline(img, opts):
-    pass
+def process_images(processor, debug=False, write_out=True):
+    for fname in glob.glob('./test_images/*.jpg'):
+        parts = list(filter(None, fname.split('/')))
+        name = parts[-1]
+        img = Image(fname=fname)
+        processor.transform(img, debug)
+        result = cv2.cvtColor(img.value, cv2.COLOR_BGR2RGB)
+        if write_out or config.write_out:
+            plt.imsave('{}/{}'.format(config.output_path, name), result)
 
 
-def transform(img, processor):
-    """given an image, return the transformed image"""
-    pass
+def process_video_frame(processor):
+
+    def _process_video_frame(image):
+        # TODO:
+        pass
+
+    return _process_video_frame
+
+
+def process_video(fspath, processor, write_out=True):
+    parts = list(filter(None, fspath.split('/')))
+    name = parts[-1]
+    clip = VideoFileClip(fspath, audio=False)
+    modified_clip = clip.fl_image(process_video_frame(processor))
+    if write_out or config.write_out:
+        modified_clip.write_videofile(
+            '{}/{}'.format(config.output_path, name),
+            audio=False
+        )
 
 
 def main():
-    imageProcessor = ImageProcessor.getImageProcessor()
-    for fname in glob.glob('camera_cal/calibration*.jpg'):
-        img = Image(fname=fname)
-        imageProcessor.transform(img, debug=True)
-        pass
-
-    pass
+    processor = ImageProcessor.getImageProcessor()
 
 
 if __name__ == "__main__":

@@ -3,6 +3,8 @@
 """
 """
 
+import os
+import os.path
 import glob
 import numpy as np
 import cv2
@@ -83,9 +85,19 @@ class CameraCalibrator(object):
 
     @classmethod
     def getCameraCalibrator(cls):
-        images = glob.glob('camera_cal/calibration*.jpg')
         calibrator = cls()
-        calibrator.calibrate(images, nx=9, ny=6)
+        import config
+        if config.load_calibration:
+            fspath = './camera_calibration.p'
+            if config.camera_calibration_out:
+                fspath = config.camera_calibration_out
+            if os.path.exists(fspath):
+                calibrator.load()
+            else:
+                raise CameraCalibrationError("no calibration out found")
+        else:
+            images = glob.glob('camera_cal/calibration*.jpg')
+            calibrator.calibrate(images, nx=9, ny=6)
         return calibrator
 
 

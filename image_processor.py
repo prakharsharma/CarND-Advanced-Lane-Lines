@@ -331,7 +331,7 @@ class ImageProcessor(object):
             'yvals': right_yvals,
             'fit': right_fit
         })
-        # TODO: write debug step to write an image with srawn fitted lane lines
+        # TODO: write debug step to write an image with drawn fitted lane lines
 
     def curvature_and_vehicle_pos(self, img):
         leftx = img.lane['left']['x']
@@ -445,7 +445,10 @@ class ImageProcessor(object):
             plt.imsave("{}/{}.jpg".format(self.cfg.debugPrefix, img.name),
                        img.value)
 
-    def transform(self, img):
+    def transform(self, img, debug=None):
+        if debug is not None:  # override debug
+            self.cfg.debug = bool(debug)
+
         if self.cfg.debug:
             # cv2.imwrite("{}/{}.jpg".format(prefix, img.name), img.value)
             plt.imsave("{}/{}.jpg".format(self.cfg.debugPrefix, img.name),
