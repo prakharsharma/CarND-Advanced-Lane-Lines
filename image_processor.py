@@ -69,7 +69,6 @@ class ImageProcessor(object):
         )
         img.add_stage('undistorted', dst)
         if self.cfg.debug:
-            # cv2.imwrite("{}/{}.jpg".format(prefix, img.name), img.value)
             plt.imsave("{}/{}.jpg".format(self.cfg.debugPrefix, img.name),
                        img.value, cmap='gray')
 
@@ -92,7 +91,6 @@ class ImageProcessor(object):
                  (scaledSobel <= self.cfg.sobelThresh[orient][1])] = 1
         img.add_stage('sobel{}Binary'.format(orient), sxBinary)
         if self.cfg.debug:
-            # cv2.imwrite("{}/{}.jpg".format(prefix, img.name), img.value)
             plt.imsave("{}/{}.jpg".format(self.cfg.debugPrefix, img.name),
                        img.value, cmap='gray')
 
@@ -106,7 +104,6 @@ class ImageProcessor(object):
                 (sChannel <= self.cfg.sThresh[1])] = 1
         img.add_stage('sChannelBinary', sBinary)
         if self.cfg.debug:
-            # cv2.imwrite("{}/{}.jpg".format(prefix, img.name), img.value)
             plt.imsave("{}/{}.jpg".format(self.cfg.debugPrefix, img.name),
                        img.value, cmap='gray')
 
@@ -122,7 +119,6 @@ class ImageProcessor(object):
         combinedBinary[(sBinary == 1) | (sxBinary == 1)] = 1
         img.add_stage('combinedBinary', combinedBinary)
         if self.cfg.debug:
-            # cv2.imwrite("{}/{}.jpg".format(prefix, img.name), img.value)
             plt.imsave("{}/{}.jpg".format(self.cfg.debugPrefix, img.name),
                        img.value, cmap='gray')
 
@@ -168,16 +164,15 @@ class ImageProcessor(object):
         img.perspective_transform_mat = cv2.getPerspectiveTransform(src, dst)
         img.inv_perspective_transform_mat = cv2.getPerspectiveTransform(dst,
                                                                         src)
-        h, w = img.image_for_stage('original').value.shape[:2]
+        h, w = img.image_for_stage('original').shape[:2]
         warped = cv2.warpPerspective(
             img.value,
-            img.perspectiveTransformMat,
+            img.perspective_transform_mat,
             (w, h),
             flags=cv2.INTER_LINEAR
         )
         img.add_stage('perspectiveTransform', warped)
         if self.cfg.debug:
-            # cv2.imwrite("{}/{}.jpg".format(prefix, img.name), img.value)
             plt.imsave("{}/{}.jpg".format(self.cfg.debugPrefix, img.name),
                        img.value, cmap='gray')
 
