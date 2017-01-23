@@ -20,6 +20,7 @@ import argparse
 import cv2
 import glob
 import config
+import time
 
 import matplotlib.pyplot as plt
 
@@ -43,8 +44,10 @@ def process_images(processor, debug=False, write_out=True):
 def process_video_frame(processor):
 
     def _process_video_frame(image):
-        # TODO:
-        pass
+        # TODO: replace with something more efficient
+        img = Image(img=image)
+        processor.transform(img, debug=False)
+        return cv2.cvtColor(img.value, cv2.COLOR_BGR2RGB)
 
     return _process_video_frame
 
@@ -54,15 +57,16 @@ def process_video(fspath, processor, write_out=True):
     name = parts[-1]
     clip = VideoFileClip(fspath, audio=False)
     modified_clip = clip.fl_image(process_video_frame(processor))
-    if write_out or config.write_out:
-        modified_clip.write_videofile(
-            '{}/{}'.format(config.output_path, name),
-            audio=False
-        )
+    # if write_out or config.write_out:
+    #     modified_clip.write_videofile(
+    #         '{}/{}'.format(config.output_path, name),
+    #         audio=False
+    #     )
 
 
 def main():
     processor = ImageProcessor.getImageProcessor()
+    process_video('./project_video.mp4', processor)
 
 
 if __name__ == "__main__":
