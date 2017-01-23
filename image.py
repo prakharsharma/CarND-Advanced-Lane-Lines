@@ -28,6 +28,7 @@ class Image(object):
         self.inv_perspective_transform_mat = None
         self.lane_pixels = None
         self.lane_fit = None
+        self.lane = {}
 
     def add_stage(self, name, value, isNewCurr=True):
         self._stages.append(name)

@@ -301,12 +301,15 @@ class ImageProcessor(object):
         return x_vehicle_off_center_m
 
     def detect_lane_lines(self, img):
-
         # detect lane pixels
         left_lane, right_lane = self.lane_pixels(img)
-        img.lane_pixels = {
-            'left': left_lane,
-            'right': right_lane
+        img.lane = {
+            'left': {
+                'pixels': left_lane
+            },
+            'right': {
+                'pixels': right_lane
+            }
         }
 
         # fit polynomial around lane pixels to get approximation for lane lines
@@ -322,7 +325,27 @@ class ImageProcessor(object):
         # right_fitx = right_fit[0] * right_yvals ** 2 +\
         #              right_fit[1] * right_yvals + right_fit[2]
 
+        img.lane['left'].update({
+            'x': leftx,
+            'yvals': left_yvals,
+            'fit': left_fit
+        })
+
+        img.lane['right'].update({
+            'x': rightx,
+            'yvals': right_yvals,
+            'fit': right_fit
+        })
         # TODO: write debug step to write an image with srawn fitted lane lines
+
+    def curvature_and_vehicle_pos(self, img):
+        leftx = img.lane['left']['x']
+        left_yvals = img.lane['left']['yvals']
+        left_fit = img.lane['left']['fit']
+
+        rightx = img.lane['right']['x']
+        right_yvals = img.lane['right']['yvals']
+        right_fit = img.lane['right']['fit']
 
         # find curvature
         left_y_eval = np.max(left_yvals)
@@ -349,20 +372,83 @@ class ImageProcessor(object):
         pos_off_center = self.vehicle_pos_wrt_lane_center(img, left_fit,
                                                           right_fit)
 
-        img.lane_lines = {
-            'left_fit': left_fit,
-            'right_fit': right_fit,
-            'left_fit_cr': left_fit_cr,
-            'right_fit_cr': right_fit_cr,
-            'left_curverad': left_curverad,
-            'right_curverad': right_curverad,
+        img.lane['left']['curverad'] = left_curverad
+        img.lane['right']['curverad'] = right_curverad
+        img.lane.update({
             'turn_dir': turn_dir,
             'curverad': curverad,
             'pos_off_center': pos_off_center
-        }
+        })
 
-    def curvature_and_vehicle_pos(self, img):
-        pass
+    def warp_back(self, img):
+        warped = img.image_for_stage('perspectiveTransform')
+        h, w = warped.shape
+
+        left_fit = img.lane['left']['fit']
+        left_yvals = img.lane['left']['yvals']
+        left_fitx = left_fit[0] * left_yvals ** 2 + \
+                    left_fit[1] * left_yvals + left_fit[2]
+
+        right_fit = img.lane['right']['fit']
+        right_yvals = img.lane['right']['yvals']
+        right_fitx = right_fit[0] * right_yvals ** 2 + \
+                     right_fit[1] * right_yvals + right_fit[2]
+
+        # Create an image to draw the lines on
+        warp_zero = np.zeros_like(warped).astype(np.uint8)
+        color_warp = np.dstack((warp_zero, warp_zero, warp_zero))
+
+        # Recast the x and y points into usable format for cv2.fillPoly()
+        pts_left = np.array([np.transpose(np.vstack([left_fitx, left_yvals]))])
+        pts_right = np.array(
+            [np.flipud(np.transpose(np.vstack([right_fitx, right_yvals])))])
+        pts = np.hstack((pts_left, pts_right))
+
+        # Draw the lane onto the warped blank image
+        cv2.fillPoly(color_warp, np.int_([pts]), (0, 255, 0))
+
+        # Warp the blank back to original image space using inverse
+        # perspective matrix (Minv)
+        newwarp = cv2.warpPerspective(
+            color_warp,
+            img.inv_perspective_transform_mat,
+            (w, h)
+        )
+        # Combine the result with the original image
+        undist = img.image_for_stage('undistorted')
+        result = cv2.addWeighted(undist, 1, newwarp, 0.3, 0)
+
+        curverad = img.lane['curverad']
+        pos_off_center = img.lane['pos_off_center']
+
+        font = cv2.FONT_HERSHEY_SIMPLEX
+        cv2.putText(
+            result,
+            'Radius of curvature = {:.2f}m'.format(curverad),
+            (50, 50),
+            font,
+            1.2,
+            (255, 255, 255),
+            2
+        )
+        cv2.putText(
+            result,
+            'Vehicle is {:.2f}m {} of center'.format(
+                abs(pos_off_center),
+                "left" if pos_off_center < 0 else "right"
+            ),
+            (50, 100),
+            font,
+            1.2,
+            (255, 255, 255),
+            2
+        )
+
+        img.add_stage('warpBack', result)
+
+        if self.cfg.debug:
+            plt.imsave("{}/{}.jpg".format(self.cfg.debugPrefix, img.name),
+                       img.value)
 
     def transform(self, img):
         if self.cfg.debug:
@@ -384,12 +470,14 @@ class ImageProcessor(object):
 
         # Determine curvature of the lane and vehicle position with respect to
         # center.
-        # self.curvature_and_vehicle_pos(img)
+        self.curvature_and_vehicle_pos(img)
 
         # Warp the detected lane boundaries back onto the original image.
+        self.warp_back(img)
 
         # Output visual display of the lane boundaries and numerical estimation
         # of lane curvature and vehicle position.
+        return img.value
 
     def regionMaskForLaneLines(self, img):
         pass
