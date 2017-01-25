@@ -176,7 +176,7 @@ class ImageProcessor(object):
             plt.imsave("{}/{}.jpg".format(self.cfg.debugPrefix, img.name),
                        img.value, cmap='gray')
 
-    def lane_pixels(self, img):
+    def detect_lane_pixels(self, img):
         # detect lane pixels
         warped = img.image_for_stage('perspectiveTransform')
         h, w = warped.shape
@@ -297,7 +297,7 @@ class ImageProcessor(object):
 
     def detect_lane_lines(self, img):
         # detect lane pixels
-        left_lane, right_lane = self.lane_pixels(img)
+        left_lane, right_lane = self.detect_lane_pixels(img)
         img.lane = {
             'left': {
                 'pixels': left_lane

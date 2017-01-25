@@ -22,6 +22,7 @@ import glob
 import config
 import time
 
+import numpy as np
 import matplotlib.pyplot as plt
 
 from moviepy.editor import VideoFileClip
@@ -52,16 +53,44 @@ def process_video_frame(vid_processor):
     return _process_video_frame
 
 
+def test_process_image(image):
+    # nonlocal frames, base_path
+    frame_count = 0
+    base_path = '/tmp/vid'
+    def _worker(image):
+        cp = np.copy(image)
+        nonlocal frame_count, base_path
+        frame_count += 1
+        fname = '/tmp/vid_{}.jpg'.format(frame_count)
+        plt.imsave(cp, image)
+        return cp
+
+    return _worker
+
+
+num_frames = 0
+def haha(image):
+    global num_frames
+    num_frames += 1
+    return np.copy(image)
+
+
 def process_video(fspath, processor, write_out=True):
     parts = list(filter(None, fspath.split('/')))
     name = parts[-1]
     clip = VideoFileClip(fspath, audio=False)
-    modified_clip = clip.fl_image(process_video_frame(processor))
-    if write_out or config.write_out:
-        modified_clip.write_videofile(
-            '{}/{}'.format(config.output_path, name),
-            audio=False
-        )
+    modified_clip = clip.fl_image(
+        # process_video_frame(processor)
+        # test_process_image
+        haha
+    )
+    global num_frames
+    print("num of frames: {}".format(num_frames))
+    # if write_out or config.write_out:
+    #     modified_clip.write_videofile(
+    #         '{}/{}'.format(config.output_path, name),
+    #         audio=False
+    #     )
 
 
 def main():
