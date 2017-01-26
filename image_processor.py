@@ -342,6 +342,12 @@ class ImageProcessor(object):
         # TODO: write debug step to write an image with drawn fitted lane lines
 
     def curvature_and_vehicle_pos(self, img):
+        img.lane_curvature()
+        img.vehicle_pos_wrt_lane_center()
+        img.dist_bw_lanes()
+
+        return
+
         # leftx = img.lane['left']['x']
         # left_yvals = img.lane['left']['yvals']
         # left_fit = img.lane['left']['fit']
@@ -499,9 +505,19 @@ class ImageProcessor(object):
         # Warp the detected lane boundaries back onto the original image.
         self.warp_back(img)
 
+        print(
+            "turn_dir: {}, left_lane_curverad: {}, right_lane_curverad: {}, "
+            "curverad: {}, lane_width_mean: {}, lane_width_stddev: {}, "
+            "pos_off_center: {}".format(
+                img.turn_dir, img.left_lane.curverad, img.right_lane.curverad,
+                img.curverad, img.lane_width_mean, img.lane_width_stddev,
+                img.pos_off_center
+            )
+        )
+
         # Output visual display of the lane boundaries and numerical estimation
         # of lane curvature and vehicle position.
-        return img.value
+        return img
 
     def regionMaskForLaneLines(self, img):
         pass

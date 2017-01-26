@@ -37,3 +37,6 @@ write_out = True
 
 # output path
 output_path = './output_images'
+
+#
+window_size = 100
