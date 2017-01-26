@@ -65,3 +65,12 @@ class VideoProcessor(object):
         img_proc = ImageProcessor.getImageProcessor()
         proc = cls(img_proc, config)
         return proc
+
+
+class VideoLaneDetectionState(object):
+
+    last_frames = []
+
+    def __init__(self):
+        pass
+

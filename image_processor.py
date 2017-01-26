@@ -298,14 +298,14 @@ class ImageProcessor(object):
     def detect_lane_lines(self, img):
         # detect lane pixels
         left_lane, right_lane = self.detect_lane_pixels(img)
-        img.lane = {
-            'left': {
-                'pixels': left_lane
-            },
-            'right': {
-                'pixels': right_lane
-            }
-        }
+        # img.lane = {
+        #     'left': {
+        #         'pixels': left_lane
+        #     },
+        #     'right': {
+        #         'pixels': right_lane
+        #     }
+        # }
 
         # fit polynomial around lane pixels to get approximation for lane lines
         leftx, left_yvals = xyvals_from_list(left_lane)
@@ -320,27 +320,41 @@ class ImageProcessor(object):
         # right_fitx = right_fit[0] * right_yvals ** 2 +\
         #              right_fit[1] * right_yvals + right_fit[2]
 
-        img.lane['left'].update({
-            'x': leftx,
-            'yvals': left_yvals,
-            'fit': left_fit
-        })
+        # img.lane['left'].update({
+        #     'x': leftx,
+        #     'yvals': left_yvals,
+        #     'fit': left_fit
+        # })
+        img.left_lane.yvals = left_yvals
+        img.left_lane.fit = left_fit
+        img.left_lane.x = leftx
 
-        img.lane['right'].update({
-            'x': rightx,
-            'yvals': right_yvals,
-            'fit': right_fit
-        })
+        # img.lane['right'].update({
+        #     'x': rightx,
+        #     'yvals': right_yvals,
+        #     'fit': right_fit
+        # })
+        img.right_lane.yvals = right_yvals
+        img.right_lane.fit = right_fit
+        img.right_lane.x = rightx
+
+        img.detected = True
         # TODO: write debug step to write an image with drawn fitted lane lines
 
     def curvature_and_vehicle_pos(self, img):
-        leftx = img.lane['left']['x']
-        left_yvals = img.lane['left']['yvals']
-        left_fit = img.lane['left']['fit']
+        # leftx = img.lane['left']['x']
+        # left_yvals = img.lane['left']['yvals']
+        # left_fit = img.lane['left']['fit']
+        leftx = img.left_lane.x
+        left_yvals = img.left_lane.yvals
+        left_fit = img.left_lane.fit
 
-        rightx = img.lane['right']['x']
-        right_yvals = img.lane['right']['yvals']
-        right_fit = img.lane['right']['fit']
+        # rightx = img.lane['right']['x']
+        # right_yvals = img.lane['right']['yvals']
+        # right_fit = img.lane['right']['fit']
+        rightx = img.right_lane.x
+        right_yvals = img.right_lane.yvals
+        right_fit = img.right_lane.fit
 
         # find curvature
         left_y_eval = np.max(left_yvals)
@@ -363,29 +377,39 @@ class ImageProcessor(object):
         turn_dir = 'left' if left_curverad < right_curverad else 'right'
         curverad = min(left_curverad, right_curverad)
 
+        img.turn_dir = turn_dir
+        img.curverad = curverad
+
         # pos of vehicle wrt center
         pos_off_center = self.vehicle_pos_wrt_lane_center(img, left_fit,
                                                           right_fit)
+        img.pos_off_center = pos_off_center
 
-        img.lane['left']['curverad'] = left_curverad
-        img.lane['right']['curverad'] = right_curverad
-        img.lane.update({
-            'turn_dir': turn_dir,
-            'curverad': curverad,
-            'pos_off_center': pos_off_center
-        })
+        # img.lane['left']['curverad'] = left_curverad
+        # img.lane['right']['curverad'] = right_curverad
+        # img.lane.update({
+        #     'turn_dir': turn_dir,
+        #     'curverad': curverad,
+        #     'pos_off_center': pos_off_center
+        # })
+        img.left_lane.curverad = left_curverad
+        img.right_lane.curverad = right_curverad
 
     def warp_back(self, img):
         warped = img.image_for_stage('perspectiveTransform')
         h, w = warped.shape
 
-        left_fit = img.lane['left']['fit']
-        left_yvals = img.lane['left']['yvals']
+        # left_fit = img.lane['left']['fit']
+        # left_yvals = img.lane['left']['yvals']
+        left_fit = img.left_lane.fit
+        left_yvals = img.left_lane.yvals
         left_fitx = left_fit[0] * left_yvals ** 2 + \
                     left_fit[1] * left_yvals + left_fit[2]
 
-        right_fit = img.lane['right']['fit']
-        right_yvals = img.lane['right']['yvals']
+        # right_fit = img.lane['right']['fit']
+        # right_yvals = img.lane['right']['yvals']
+        right_fit = img.right_lane.fit
+        right_yvals = img.right_lane.yvals
         right_fitx = right_fit[0] * right_yvals ** 2 + \
                      right_fit[1] * right_yvals + right_fit[2]
 
@@ -413,8 +437,10 @@ class ImageProcessor(object):
         undist = img.image_for_stage('undistorted')
         result = cv2.addWeighted(undist, 1, newwarp, 0.3, 0)
 
-        curverad = img.lane['curverad']
-        pos_off_center = img.lane['pos_off_center']
+        # curverad = img.lane['curverad']
+        # pos_off_center = img.lane['pos_off_center']
+        curverad = img.curverad
+        pos_off_center = img.pos_off_center
 
         font = cv2.FONT_HERSHEY_SIMPLEX
         cv2.putText(
