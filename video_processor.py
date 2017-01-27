@@ -68,7 +68,6 @@ class VideoProcessor(object):
         return cv2.cvtColor(self.curr_frame.value, cv2.COLOR_BGR2RGB)
 
     def process_fresh_frame(self, recovery=False):
-        # del self.past_frames[:]
 
         if not recovery:
             self.img_processor.transform(self.curr_frame, self.cfg.debug)
