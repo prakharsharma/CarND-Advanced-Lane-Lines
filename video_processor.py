@@ -19,6 +19,10 @@ class InconsistentLaneLinesError(Exception):
     pass
 
 
+class VerySmallLaneError(Exception):
+    pass
+
+
 class VideoProcessor(object):
 
     def __init__(self, img_processor, config):
@@ -57,6 +61,8 @@ class VideoProcessor(object):
             except InconsistentLaneLinesError:
                 self.curr_frame_is_bad = True
                 # self.process_fresh_frame(True)
+            except VerySmallLaneError:
+                self.curr_frame_is_bad = True
 
         if self.curr_frame_is_bad:
             self.handle_bad_frame()
@@ -127,6 +133,11 @@ class VideoProcessor(object):
                 config.window_size
             )
 
+        if len(left_yvals) < self.cfg.min_lane_len or \
+                len(right_yvals) < self.cfg.min_lane_len:
+            print("Frame#{} very small lane".format(self.frame_count))
+            raise VerySmallLaneError
+
         per_chng_x = int(round(
             100.0 * min(len(leftx), len(rightx))/max(len(leftx), len(rightx))
         ))
@@ -135,11 +146,11 @@ class VideoProcessor(object):
             max(len(left_yvals), len(right_yvals))
         ))
         if per_chng_x < self.cfg.tolerable_change_in_lanes:
-            print("frame#{} big difference in X vals of left and right "
+            print("Frame#{} big difference in X vals of left and right "
                   "lane".format(self.frame_count))
             raise InconsistentLaneLinesError
         if per_chng_y < self.cfg.tolerable_change_in_lanes:
-            print("frame#{} big difference in Y vals of left and right "
+            print("Frame#{} big difference in Y vals of left and right "
                   "lane".format(self.frame_count))
             raise InconsistentLaneLinesError
 

@@ -29,6 +29,7 @@ from moviepy.editor import VideoFileClip
 
 from image import Image
 from image_processor import ImageProcessor
+from video_processor import VideoProcessor
 
 
 def process_images(img_processor, debug=False, write_out=True):
@@ -39,63 +40,57 @@ def process_images(img_processor, debug=False, write_out=True):
         img_processor.transform(img, debug)
         result = cv2.cvtColor(img.value, cv2.COLOR_BGR2RGB)
         if write_out or config.write_out:
-            plt.imsave('{}/{}'.format(config.output_path, name), result)
+            plt.imsave('{}/{}'.format(
+                # config.output_path,
+                './output_images2',
+                name
+            ), result)
 
 
 def process_video_frame(vid_processor):
 
     def _process_video_frame(image):
         # TODO: replace with something more efficient
-        img = Image(img=image)
-        result = vid_processor.process(img, debug=False)
+        frame = Image(img=image)
+        result = vid_processor.process(frame, debug=False)
         return result
 
     return _process_video_frame
 
 
-def test_process_image(image):
-    # nonlocal frames, base_path
-    frame_count = 0
-    base_path = '/tmp/vid'
-    def _worker(image):
-        cp = np.copy(image)
-        nonlocal frame_count, base_path
-        frame_count += 1
-        fname = '/tmp/vid_{}.jpg'.format(frame_count)
-        plt.imsave(cp, image)
-        return cp
+schema = ['frame', '#leftX', '#leftY', '#rightX', '#rightY',
+          'leftCurverad', 'rightCurverad', 'meanLaneWidth', 'turnDir']
 
-    return _worker
-
-
-num_frames = 0
-def haha(image):
-    global num_frames
-    num_frames += 1
-    return np.copy(image)
+def dump_video_stats(stats, fname):
+    fhndl = open(fname, 'w')
+    fhndl.write('{}\n'.format(','.join(schema)))
+    for record in stats:
+        fhndl.write('{}\n'.format(','.join(record)))
+    fhndl.close()
 
 
 def process_video(fspath, processor, write_out=True):
-    parts = list(filter(None, fspath.split('/')))
-    name = parts[-1]
+    ts = int(time.time()*1000)
+    # parts = list(filter(None, fspath.split('/')))
+    # name = parts[-1]
+    name = 'project_video-{}.mp4'.format(ts)
+    out_fspath = './output_videos/{}'.format(name)
     clip = VideoFileClip(fspath, audio=False)
-    modified_clip = clip.fl_image(
-        # process_video_frame(processor)
-        # test_process_image
-        haha
-    )
-    global num_frames
-    print("num of frames: {}".format(num_frames))
-    # if write_out or config.write_out:
-    #     modified_clip.write_videofile(
-    #         '{}/{}'.format(config.output_path, name),
-    #         audio=False
-    #     )
+    out_clip = clip.fl_image(process_video_frame(processor))
+    if write_out or config.write_out:
+        out_clip.write_videofile(
+            # '{}/{}'.format(config.output_path, name),
+            out_fspath,
+            audio=False
+        )
+    dump_video_stats(processor.stats, './output_videos/stats-{}.csv'.format(ts))
 
 
 def main():
     img_processor = ImageProcessor.getImageProcessor()
-    process_video('./project_video.mp4', img_processor)
+    process_images(img_processor)
+    # vid_processor = VideoProcessor.get_video_processor()
+    # process_video('./project_video.mp4', vid_processor)
 
 
 if __name__ == "__main__":
