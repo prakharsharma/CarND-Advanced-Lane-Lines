@@ -148,7 +148,8 @@ Starting points of the lane lines are detected as follows
     p2 = np.argmax(histogram[w/2:])
 ```
 
-Using the above starting points, we run a sliding window algorithm up the image to detect pixels for the lane lines. This algorithm is implemented by [``][slidingWindowDetection]
+Using the above starting points, we run a sliding window algorithm up the image to detect pixels for the lane lines. This algorithm is implemented between
+from line#193 to line#257 of function [`detect_lane_lines`][laneLinesDetectionFunc].
  
 After detecting lane lines pixels, [`detect_lane_lines`][laneLinesDetectionFunc] fits a second order polynomial through them, which look like:
 
