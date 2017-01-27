@@ -13,9 +13,9 @@ The goals / steps of this project are the following:
 
 [//]: # (Image References)
 
-[undistorted_chessboard]: ./undistort_output.png "Undistorted"
-[image2]: ./test_images/test1.jpg "Road Transformed"
-[image3]: ./examples/binary_combo_example.jpg "Binary Example"
+[undistortedChessboard]: ./output_images/undistort_calibration1.png "Undistorted"
+[testImage]: ./test_images/test1.jpg "Road Transformed"
+[image3]: ./output_images/thresholded_binary-test1.jpg "Binary Example"
 [image4]: ./examples/warped_straight_lines.jpg "Warp Example"
 [image5]: ./examples/color_fit_lines.jpg "Fit Visual"
 [image6]: ./examples/example_output.jpg "Output"
@@ -23,7 +23,7 @@ The goals / steps of this project are the following:
 [cameraCalibration]: https://github.com/prakharsharma/CarND-Advanced-Lane-Lines/blob/master/camera_calibration.py#L44 "Camera Calibration"
 
 ## [Rubric](https://review.udacity.com/#!/rubrics/571/view) Points
-###Here I will consider the rubric points individually and describe how I addressed each point in my implementation.  
+###Here I will consider the rubric points individually and describe how I addressed each point in my implementation.
 
 ---
 ###Writeup / README
@@ -51,16 +51,19 @@ calibration and distortion coefficients using the `cv2.calibrateCamera()`
 function.  I applied this distortion correction to the test image using the
 `cv2.undistort()` function and obtained this result: 
 
-![alt text][undistorted_chessboard]
+![alt text][undistortedChessboard]
 
 ###Pipeline (single images)
 
 ####1. Provide an example of a distortion-corrected image.
 To demonstrate this step, I will describe how I apply the distortion correction
 to one of the test images like this one:
-![alt text][image2]
+![alt text][testImage]
+
 ####2. Describe how (and identify where in your code) you used color transforms, gradients or other methods to create a thresholded binary image. Provide an example of a binary image result.
-I used a combination of color and gradient thresholds to generate a binary image (thresholding steps at lines # through # in `another_file.py`).  Here's an example of my output for this step.  (note: this is not actually from one of the test images)
+I used a combination of color (S channel) and gradient (Sobel X) thresholds to
+generate a binary image. Thresholding steps at lines # through # in `another_file.py`).
+Here's an example of my output for this step. (note: this is not actually from one of the test images)
 
 ![alt text][image3]
 

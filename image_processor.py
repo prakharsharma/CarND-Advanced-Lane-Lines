@@ -261,42 +261,6 @@ class ImageProcessor(object):
 
         return left_lane, right_lane
 
-    # def vehicle_pos_wrt_lane_center(self, img, left_fit, right_fit):
-    #     """
-    #     Finds position of the vehicle with respect to lane center
-    #
-    #     1. Find starting (closest to the vehicle) points of the lane (x_left, h) and (x_right, h)
-    #         1. Intersection of the left lane line with bottom of the image gives us starting point of left lane, i.e. (x_left, h)
-    #         2. Intersection of the right lane line with bottom of the image gives us starting point of left lane, i.e. (x_right, h)
-    #     2. Find center of the vehicle, assuming vehicle to be located at the center of the image.
-    #     3. Find position of vehicle wrt lane center
-    #     """
-    #
-    #     warped = img.image_for_stage('perspectiveTransform')
-    #     h, w = warped.shape
-    #
-    #     x_left = left_fit[0] * h ** 2 + left_fit[1] * h + left_fit[2]
-    #     x_right = right_fit[0] * h ** 2 + right_fit[1] * h + right_fit[2]
-    #
-    #     lane_width = x_right - x_left
-    #     lane_center = x_left + lane_width / 2.0
-    #
-    #     x_vehicle = w / 2.0
-    #
-    #     x_vehicle_off_center = x_vehicle - lane_center
-    #     x_vehicle_off_center_m = x_vehicle_off_center * self.cfg.xm_per_pix
-    #
-    #     if self.cfg.debug:
-    #         print("starting pos of lane, left: {}, right: {}".format(
-    #             x_left,x_right))
-    #         print("lane center: {}, vehicle pos: {}".format(
-    #             lane_center, x_vehicle))
-    #         print("vehicle is {:.4f}m {} of center".format(
-    #             abs(x_vehicle_off_center_m),
-    #             "left" if x_vehicle_off_center < 0 else "right"))
-    #
-    #     return x_vehicle_off_center_m
-
     def detect_lane_lines(self, img):
         # detect lane pixels
 
