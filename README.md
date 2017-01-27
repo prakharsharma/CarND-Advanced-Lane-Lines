@@ -69,10 +69,14 @@ to one of the test images like this one:
 ![alt text][testImage]
 
 ####2. Describe how (and identify where in your code) you used color transforms, gradients or other methods to create a thresholded binary image. Provide an example of a binary image result.
-I used a combination of color (S channel) and gradient (Sobel X) thresholds to
-generate a binary image. S channel thresholding is done by function
-[`sChannel_threshold`][sChannelFunc]. Sobel X threshold is done by function
-[`binary_threshold`][sobelXFunc]
+I used a combination (`logical or`) of color (S channel) and gradient (Sobel X) thresholds to generate a binary image. S channel thresholding is done by function
+[`sChannel_threshold`][sChannelFunc]. Sobel X threshold is done by function [`binary_threshold`][sobelXFunc]. Following values of thresholds were used:
+
+```
+    s_channel_threshold = (170, 255)
+    sobel_x_threshold = (20, 100)
+```
+
 Here's an example of my output for this step. (note: this is not actually from one of the test images)
 
 ![alt text][thresholdedBinary]
