@@ -38,5 +38,20 @@ write_out = True
 # output path
 output_path = './output_images'
 
-#
+# window used to do sliding window
 window_size = 100
+
+# max number of past frames that we keep track of
+max_past_frames = 10
+
+# num of frames after we reset
+reset_after_frames = 100
+
+# percent diff between left and right lanes
+tolerable_change_in_lanes = 65
+
+# minimum number of past frames required for incremental processing
+min_past_frames = 3
+
+# longest streak of bad frames allowed
+longest_bad_streak = 3

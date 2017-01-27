@@ -5,6 +5,23 @@ utility functions
 import numpy as np
 
 
+cherry_pick = lambda b, l: [x[l] for x in b if l < len(x)]
+
+
+def mean(input):
+    """returns mean of values in the input list"""
+    out_len = len(max(input, key=len))
+    out = []
+    for i in range(out_len):
+        out.append(int(np.round(np.mean(cherry_pick(input, i)))))
+    return np.array(out, dtype=np.uint32)
+
+
+def reduce():
+    """reduces list of lists into a single list"""
+    pass
+
+
 def percent_change(new_val, old_val):
     return np.round(
         100.0 * abs(new_val - old_val)/float(old_val),
@@ -63,9 +80,12 @@ def find_peak(warped, center, window_size):
         warped[y_range[0]:y_range[1], x_range[0]:x_range[1]],
         axis=0
     )
-    peak = np.argmax(histogram)
-    if peak:
-        return x_range[0] + peak, center[1]
+    try:
+        peak = np.argmax(histogram)
+        if peak:
+            return x_range[0] + peak, center[1]
+    except Exception:
+        pass
 
 
 def better_lane_points(warped, left_init_x, left_init_yvals, right_init_x,

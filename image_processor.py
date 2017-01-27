@@ -401,21 +401,27 @@ class ImageProcessor(object):
         img.left_lane.curverad = left_curverad
         img.right_lane.curverad = right_curverad
 
-    def warp_back(self, img):
+    def warp_back(self, img, left_fit=None, left_yvals=None, right_fit=None,
+                  right_yvals=None, curverad=None, pos_off_center=None):
+
         warped = img.image_for_stage('perspectiveTransform')
         h, w = warped.shape
 
         # left_fit = img.lane['left']['fit']
         # left_yvals = img.lane['left']['yvals']
-        left_fit = img.left_lane.fit
-        left_yvals = img.left_lane.yvals
+        if left_fit is None:
+            left_fit = img.left_lane.fit
+        if left_yvals is None:
+            left_yvals = img.left_lane.yvals
         left_fitx = left_fit[0] * left_yvals ** 2 + \
                     left_fit[1] * left_yvals + left_fit[2]
 
         # right_fit = img.lane['right']['fit']
         # right_yvals = img.lane['right']['yvals']
-        right_fit = img.right_lane.fit
-        right_yvals = img.right_lane.yvals
+        if right_fit is None:
+            right_fit = img.right_lane.fit
+        if right_yvals is None:
+            right_yvals = img.right_lane.yvals
         right_fitx = right_fit[0] * right_yvals ** 2 + \
                      right_fit[1] * right_yvals + right_fit[2]
 
@@ -445,8 +451,10 @@ class ImageProcessor(object):
 
         # curverad = img.lane['curverad']
         # pos_off_center = img.lane['pos_off_center']
-        curverad = img.curverad
-        pos_off_center = img.pos_off_center
+        if curverad is None:
+            curverad = img.curverad
+        if pos_off_center is None:
+            pos_off_center = img.pos_off_center
 
         font = cv2.FONT_HERSHEY_SIMPLEX
         cv2.putText(
@@ -505,15 +513,15 @@ class ImageProcessor(object):
         # Warp the detected lane boundaries back onto the original image.
         self.warp_back(img)
 
-        print(
-            "turn_dir: {}, left_lane_curverad: {}, right_lane_curverad: {}, "
-            "curverad: {}, lane_width_mean: {}, lane_width_stddev: {}, "
-            "pos_off_center: {}".format(
-                img.turn_dir, img.left_lane.curverad, img.right_lane.curverad,
-                img.curverad, img.lane_width_mean, img.lane_width_stddev,
-                img.pos_off_center
-            )
-        )
+        # print(
+        #     "turn_dir: {}, left_lane_curverad: {}, right_lane_curverad: {}, "
+        #     "curverad: {}, lane_width_mean: {}, lane_width_stddev: {}, "
+        #     "pos_off_center: {}".format(
+        #         img.turn_dir, img.left_lane.curverad, img.right_lane.curverad,
+        #         img.curverad, img.lane_width_mean, img.lane_width_stddev,
+        #         img.pos_off_center
+        #     )
+        # )
 
         # Output visual display of the lane boundaries and numerical estimation
         # of lane curvature and vehicle position.

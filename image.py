@@ -22,23 +22,6 @@ class ImageError(Exception):
 
 class Image(object):
 
-    img = None
-
-    left_lane = LaneLine()
-    right_lane = LaneLine()
-
-    lane_width_mean = None
-    lane_width_stddev = None
-
-    curverad = None
-
-    turn_dir = None
-
-    pos_off_center = None
-
-    detected = False
-    detection_confidence = None
-
     def __init__(self, img=None, fname=None):
         if img is None and fname is None:
             raise ImageBadInputError
@@ -48,11 +31,22 @@ class Image(object):
         self._stage_map = {
             'original': img
         }
+
         self.name = 'original'
         self.value = img
+
         self.perspective_transform_mat = None
         self.inv_perspective_transform_mat = None
-        # self.lane = {}
+
+        self.left_lane = LaneLine()
+        self.right_lane = LaneLine()
+
+        self.curverad = None
+        self.turn_dir = None
+        self.pos_off_center = None
+
+        self.detected = False
+        self.detection_confidence = None
 
     def add_stage(self, name, value, isNewCurr=True):
         self._stages.append(name)
@@ -63,6 +57,17 @@ class Image(object):
 
     def image_for_stage(self, name):
         return self._stage_map[name]
+
+    def reset_detection(self):
+        self.left_lane.reset()
+        self.right_lane.reset()
+        self.detected = False
+        self.lane_width_mean = None
+        self.lane_width_stddev = None
+        self.curverad = None
+        self.turn_dir = None
+        self.pos_off_center = None
+        self.detection_confidence = None
 
     def dist_bw_lanes(self, step_size=16):
         """computes mean and stddev of lane width across the image"""
