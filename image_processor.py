@@ -376,8 +376,10 @@ class ImageProcessor(object):
         img.add_stage('warpBack', result)
 
         if self.cfg.debug:
-            plt.imsave("{}/{}.jpg".format(self.cfg.debugPrefix, img.name),
-                       img.value)
+            plt.imsave(
+                "{}/{}.jpg".format(self.cfg.debugPrefix, img.name),
+                cv2.cvtColor(img.value, cv2.COLOR_BGR2RGB)
+            )
 
     def transform(self, img, debug=None):
         if debug is not None:  # override debug
