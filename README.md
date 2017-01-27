@@ -45,27 +45,20 @@ You're reading it!
 
 The code for this step is contained in [calibrate][cameraCalibrationFunc] of file `camera_calibration.py`.
 
-I start by preparing "object points", which will be the (x, y, z) coordinates
-of the chessboard corners in the world. Here I am assuming the chessboard is
-fixed on the (x, y) plane at z=0, such that the object points are the same for
-each calibration image.  Thus, `objp` is just a replicated array of
-coordinates, and `objpoints` will be appended with a copy of it every time I
-successfully detect all chessboard corners in a test image.  `imgpoints` will
-be appended with the (x, y) pixel position of each of the corners in the image
-plane with each successful chessboard detection.
+I start by preparing "object points", which will be the (x, y, z) coordinates of the chessboard corners in the world. Here I am assuming the chessboard is fixed on the (x, y) 
+plane at z=0, such that the object points are the same for each calibration image.  Thus, `objp` is just a replicated array of coordinates, and `objpoints` will be appended 
+with a copy of it every time I successfully detect all chessboard corners in a test image.  `imgpoints` will be appended with the (x, y) pixel position of each of the corners in 
+the image plane with each successful chessboard detection.
 
-I then used the output `objpoints` and `imgpoints` to compute the camera
-calibration and distortion coefficients using the `cv2.calibrateCamera()`
-function.  I applied this distortion correction to the test image using the
-`cv2.undistort()` function and obtained this result: 
+I then used the output `objpoints` and `imgpoints` to compute the camera calibration and distortion coefficients using the `cv2.calibrateCamera()` function.  I applied this 
+distortion correction to the test image using the `cv2.undistort()` function and obtained this result: 
 
 ![alt text][undistortedChessboard]
 
 ###Pipeline (single images)
 
 ####1. Provide an example of a distortion-corrected image.
-To demonstrate this step, I will describe how I apply the distortion correction
-to one of the test images like this one:
+To demonstrate this step, I will describe how I apply the distortion correction to one of the test images like this one:
 ![alt text][testImage]
 
 ####2. Describe how (and identify where in your code) you used color transforms, gradients or other methods to create a thresholded binary image. Provide an example of a binary image result.
@@ -141,23 +134,23 @@ Starting points of the lane lines are detected as follows
     
     histogram = np.sum(warped[h/2:, :], axis=0)
     
-    # starting point of left lane
+    # starting point of left lane, look in left half of the image
     p1 = np.argmax(histogram[:w/2])
     
-    # starting point of right lane 
+    # starting point of right lane, look in right half of the image
     p2 = np.argmax(histogram[w/2:])
 ```
 
-Using the above starting points, we run a sliding window algorithm up the image to detect pixels for the lane lines. This algorithm is implemented between
-from line#193 to line#257 of function [`detect_lane_lines`][laneLinesDetectionFunc].
+Using the above starting points, we run a sliding window algorithm up the image to detect pixels for the lane lines. This algorithm is implemented from line#193 to line#257 of 
+function [`detect_lane_lines`][laneLinesDetectionFunc].
  
-After detecting lane lines pixels, [`detect_lane_lines`][laneLinesDetectionFunc] fits a second order polynomial through them, which look like:
+After detecting lane lines pixels, [`detect_lane_lines`][laneLinesDetectionFunc], fits a second order polynomial through them, which look like:
 
 ![alt text][detectedPointsAndPolyline]
 
 ####5. Describe how (and identify where in your code) you calculated the radius of curvature of the lane and the position of the vehicle with respect to center.
 
-Radius of curvature is calculated using the material presented in lecture notes (lecture#34). This is implemented in [`lane_curvature`][curvatureFunc].
+Radius of curvature is calculated using the material presented in lecture notes (lecture#34). This is implemented by [`lane_curvature`][curvatureFunc].
 
 To determine vehicle positon wrt lane center, we use following data points: -
 
@@ -168,7 +161,7 @@ This is implemented by [`vehicle_pos_wrt_lane_center`][vehiclePosFunc].
 
 ####6. Provide an example image of your result plotted back down onto the road such that the lane area is identified clearly.
 
-Function [`warp_back`][drawLaneLinesAndWarpBackFunc] draws detected lane lines on the undistorted image and annotated it with calculations for radius of curvature and vehicle
+Function [`warp_back`][drawLaneLinesAndWarpBackFunc] draws detected lane lines on the undistorted image and annotates it with calculations for radius of curvature and vehicle
   position wrt lane center. Here is an example of my result on a test image:
 
 ![alt text][finalResult]
@@ -193,9 +186,10 @@ I found this project particularly challenging. Main problems for me arose from t
 - Lack of familiarity with
     - Material, i.e., computer vision techniques. I had to watch the videos at least twice.
     - Tools - `numpy`, `opencv`, ...
-- Project required too much time
+- Project required too much time, i.e., too many things to do
 
-Given that it was so challenging, I am pretty proud of what I have put together!
+Given that it was so challenging, I am pretty proud of what I have put together! Nonetheless, there are quite a few areas of improvement so that its performance can improve
+say wrt challenge videos.
 
 ##### Areas of improvement
 
@@ -208,9 +202,9 @@ Given that it was so challenging, I am pretty proud of what I have put together!
     1. Try out ways of smoothing measurements across previous frames other than simple mean.
     1. Build a numerical (between `0` and `1`) measure of confidence for detection and use it to qualify detection as good or bad. Some ideas to consider
         1. Width of lane matches to the known lane width (or range of allowed lane widths in the country).
-        1. Low variance of lane width in a frame, i.e., detected left and right lines stay close to parallel.
-        1. Low variance in lane width measured across successive frames.
-        1. Low variance in radius of curvature measures across frames.
+        1. Low variance of lane width in a frame, i.e., detected left and right lines stay parallel to each other.
+        1. Low variance of lane width measured across successive frames.
+        1. Low variance of radius of curvature measures across frames.
     1. Current implementation looks for lane lines in a window size of 100 (configurable) around the lane line points detected for the previous frame. It is worthwhile to experiment
     with different window sizes and maybe learn the right window size.
 1. Finally, I will like to use deep learning for lane lines detection and compare how it performs against a CV approach.  
