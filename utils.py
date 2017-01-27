@@ -6,6 +6,9 @@ import numpy as np
 
 
 cherry_pick = lambda b, l: [x[l] for x in b if l < len(x)]
+video_stats_schema = ['frame', '#leftX', '#leftY', '#rightX', '#rightY',
+                      'leftCurverad', 'rightCurverad', 'meanLaneWidth',
+                      'turnDir']
 
 
 def mean(input):
@@ -17,10 +20,12 @@ def mean(input):
     return np.array(out, dtype=np.uint32)
 
 
-def reduce():
-    """reduces list of lists into a single list"""
-    pass
-
+def dump_video_stats(stats, fname):
+    fhndl = open(fname, 'w')
+    fhndl.write('{}\n'.format(','.join(video_stats_schema)))
+    for record in stats:
+        fhndl.write('{}\n'.format(','.join(record)))
+    fhndl.close()
 
 def percent_change(new_val, old_val):
     return np.round(
@@ -43,12 +48,6 @@ def vehicle_pos_wrt_lane_center(image, left_fit, right_fit, xm_per_pix):
     x_vehicle_off_center = x_vehicle - lane_center
     x_vehicle_off_center_m = x_vehicle_off_center * xm_per_pix
 
-    # print("starting pos of lane, left: {}, right: {}".format(x_left, x_right))
-    # print("lane center: {}, vehicle pos: {}".format(lane_center, x_vehicle))
-    # print("vehicle is {:.4f}m {} of center".format(
-    #     abs(x_vehicle_off_center_m),
-    #     "left" if x_vehicle_off_center < 0 else "right")
-    # )
     return x_vehicle_off_center_m
 
 
@@ -142,8 +141,5 @@ def better_lane_points(warped, left_init_x, left_init_yvals, right_init_x,
 
     right_x = np.array(right_x, dtype=np.uint32)
     right_y = np.array(right_y, dtype=np.uint32)
-    # print("left_y: {}, left_x: {}, right_y: {}, right_x: {}".format(
-    #     len(left_y), len(left_x), len(right_y), len(right_x))
-    # )
 
     return left_x, left_y, right_x, right_y

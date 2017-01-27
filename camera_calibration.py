@@ -105,5 +105,5 @@ if __name__ == "__main__":
     images = glob.glob('camera_cal/calibration*.jpg')
     calibrator = CameraCalibrator()
     mtx, dst = calibrator.calibrate(images, nx=9, ny=6)
-    print(mtx)
-    print(dst)
+    # print(mtx)
+    # print(dst)

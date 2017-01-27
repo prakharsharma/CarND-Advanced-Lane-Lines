@@ -38,7 +38,6 @@ class VideoProcessor(object):
     def process(self, frame, debug=None):
         if debug is not None:  # override debug
             self.cfg.debug = bool(debug)
-        # import pdb; pdb.set_trace()
 
         self.frame_count += 1
 
@@ -47,8 +46,6 @@ class VideoProcessor(object):
 
         if len(self.past_frames) < self.cfg.min_past_frames:
             self.process_fresh_frame()
-        # elif self.frame_count % self.cfg.reset_after_frames == 0:
-        #     self.process_fresh_frame()
         else:
             try:
                 self.process_based_on_past_frames()
@@ -57,10 +54,8 @@ class VideoProcessor(object):
                 print("Frame#{} no lane points found using past image".format(
                     self.frame_count
                 ))
-                # self.process_fresh_frame(True)
             except InconsistentLaneLinesError:
                 self.curr_frame_is_bad = True
-                # self.process_fresh_frame(True)
             except VerySmallLaneError:
                 self.curr_frame_is_bad = True
 
@@ -80,12 +75,10 @@ class VideoProcessor(object):
         else:
             self.img_processor.detect_lane_lines(self.curr_frame)
             self.img_processor.curvature_and_vehicle_pos(self.curr_frame)
-            # self.img_processor.warp_back(self.curr_frame)
 
         self.past_frames.append(self.curr_frame)
         self.finalize_lane_lines()
 
-        # self.past_frames.append(self.curr_frame)
         # print(
         #     "turn_dir: {}, left_lane_curverad: {}, right_lane_curverad: {}, "
         #     "curverad: {}, lane_width_mean: {}, lane_width_stddev: {}, "
@@ -118,7 +111,7 @@ class VideoProcessor(object):
         rightx = right_fit[0] * right_yvals ** 2 + \
                  right_fit[1] * right_yvals + right_fit[2]
 
-        # TODO: for debug, plot initial points
+        # DIAGNOSTIC_TODO: plot initial points
 
         # print("left_yvals: {}, leftx: {}, right_yvals: {}, rightx: {}".format(
         #     len(left_yvals), len(leftx),
@@ -154,7 +147,7 @@ class VideoProcessor(object):
                   "lane".format(self.frame_count))
             raise InconsistentLaneLinesError
 
-        # TODO: for debug, plot new points
+        # DIAGNOSTIC_TODO: plot new points
 
         # fit second order polynomial based on computed x and y vals
         try:
@@ -163,7 +156,7 @@ class VideoProcessor(object):
         except:
             raise NoLanePointsFoundError
 
-        # TODO: for debug, plot lane lines using fitted polynomial
+        # DIAGNOSTIC_TODO: plot lane lines using fitted polynomial
 
         self.curr_frame.left_lane.yvals = left_yvals
         self.curr_frame.left_lane.fit = left_fit
@@ -179,6 +172,8 @@ class VideoProcessor(object):
         self.curr_frame.vehicle_pos_wrt_lane_center()
         self.curr_frame.dist_bw_lanes()
 
+        ## IDEAS: can use percent change in radius of curvature and lane width
+        ## to determine detection confidence
         # curverad_change = utils.percent_change(self.curr_frame.curverad,
         #                                        last_frame.curverad)
         # width_change = utils.percent_change(self.curr_frame.lane_width_mean,
@@ -195,26 +190,9 @@ class VideoProcessor(object):
         #         self.curr_frame.pos_off_center
         #     )
         # )
-        #
-        # print("width_change: {}, curverad_change: {}".format(
-        #     width_change, curverad_change
-        # ))
-
-        # TODO: fork flow based on detection confidence
-
-        ## keep at the most {max_past_frames} most recent frames
-        # if len(self.past_frames) == self.cfg.max_past_frames:
-        #     self.past_frames.pop(0)
-        # self.past_frames.append(self.curr_frame)
-        #
-        # ##smooth x and y vals over the past few iterations
-        # self.smoothen_fit()
 
         self.past_frames.append(self.curr_frame)
         self.finalize_lane_lines()
-
-        ## warp back
-        # self.img_processor.warp_back(self.curr_frame)
 
         return self.curr_frame
 
@@ -265,6 +243,7 @@ class VideoProcessor(object):
                                      pos_off_center)
 
     def handle_bad_frame(self):
+        """handles bad frame"""
         self.bad_frame_streak += 1
         self.curr_frame.reset_detection()
         if self.bad_frame_streak > self.cfg.longest_bad_streak:
@@ -277,6 +256,7 @@ class VideoProcessor(object):
             self.finalize_lane_lines()
 
     def collect_stats(self):
+        """collect stats that are helpful for debugging"""
         frame = self.curr_frame
         if self.curr_frame_is_bad:
             frame = self.past_frames[-1]
@@ -293,7 +273,10 @@ class VideoProcessor(object):
         ])
 
     @classmethod
-    def get_video_processor(cls):
-        img_proc = ImageProcessor.getImageProcessor()
+    def get_video_processor(cls, image_processor=None):
+        if image_processor:
+            img_proc = image_processor
+        else:
+            img_proc = ImageProcessor.getImageProcessor()
         proc = cls(img_proc, config)
         return proc

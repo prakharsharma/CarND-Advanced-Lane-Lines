@@ -3,7 +3,7 @@ contains all the config params
 """
 
 # debug flag
-debug = True
+debug = False
 
 # directory for debug data
 debugPrefix = './debug'

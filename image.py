@@ -107,8 +107,6 @@ class Image(object):
         self.lane_width_mean = np.mean(dist)
         self.lane_width_stddev = np.std(dist)
 
-        # return yvals, dist
-
     def lane_curvature(self):
 
         if not self.detected:
@@ -147,6 +145,8 @@ class Image(object):
 
     def vehicle_pos_wrt_lane_center(self):
         """
+        Finds position of the vehicle with respect to lane center
+
         1. Find starting (closest to the vehicle) points of the lane (x_left, h) and (x_right, h)
             1. Intersection of the left lane line with bottom of the image gives us starting point of left lane, i.e. (x_left, h)
             2. Intersection of the right lane line with bottom of the image gives us starting point of left lane, i.e. (x_right, h)

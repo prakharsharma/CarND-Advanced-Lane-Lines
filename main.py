@@ -1,7 +1,6 @@
 #-*- coding: utf-8 -*-
 
 """
-TODO
 The goals / steps of this project are the following:
 
 - Compute the camera calibration matrix and distortion coefficients given a
@@ -21,6 +20,7 @@ import cv2
 import glob
 import config
 import time
+import utils
 
 import numpy as np
 import matplotlib.pyplot as plt
@@ -58,17 +58,6 @@ def process_video_frame(vid_processor):
     return _process_video_frame
 
 
-schema = ['frame', '#leftX', '#leftY', '#rightX', '#rightY',
-          'leftCurverad', 'rightCurverad', 'meanLaneWidth', 'turnDir']
-
-def dump_video_stats(stats, fname):
-    fhndl = open(fname, 'w')
-    fhndl.write('{}\n'.format(','.join(schema)))
-    for record in stats:
-        fhndl.write('{}\n'.format(','.join(record)))
-    fhndl.close()
-
-
 def process_video(fspath, processor, write_out=True):
     ts = int(time.time()*1000)
     # parts = list(filter(None, fspath.split('/')))
@@ -83,16 +72,17 @@ def process_video(fspath, processor, write_out=True):
             out_fspath,
             audio=False
         )
-    dump_video_stats(processor.stats, './output_videos/stats-{}.csv'.format(ts))
+    utils.dump_video_stats(processor.stats,
+                           './output_videos/stats-{}.csv'.format(ts))
 
 
 def main():
     img_processor = ImageProcessor.getImageProcessor()
     process_images(img_processor)
-    # vid_processor = VideoProcessor.get_video_processor()
-    # process_video('./project_video.mp4', vid_processor)
+    vid_processor = VideoProcessor.get_video_processor(img_processor)
+    process_video('./project_video.mp4', vid_processor)
 
 
 if __name__ == "__main__":
-    # args = None  # TODO:
+    # TODO: add command line options for handling image and video mode
     main()

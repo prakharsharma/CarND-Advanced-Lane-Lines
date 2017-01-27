@@ -256,56 +256,51 @@ class ImageProcessor(object):
             # slide the window up for next iteration
             curr_top -= step_size
 
-        # TODO: write a debug step to write an image with detected lane line
-        # pixels plotted over warped binary image
+        # DIAGNOSTIC_TODO: write an image with detected lane line pixels
+        # plotted over warped binary image
 
         return left_lane, right_lane
 
-    def vehicle_pos_wrt_lane_center(self, img, left_fit, right_fit):
-        """
-        1. Find starting (closest to the vehicle) points of the lane (x_left, h) and (x_right, h)
-            1. Intersection of the left lane line with bottom of the image gives us starting point of left lane, i.e. (x_left, h)
-            2. Intersection of the right lane line with bottom of the image gives us starting point of left lane, i.e. (x_right, h)
-        2. Find center of the vehicle, assuming vehicle to be located at the center of the image.
-        3. Find position of vehicle wrt lane center
-        """
-
-        warped = img.image_for_stage('perspectiveTransform')
-        h, w = warped.shape
-
-        x_left = left_fit[0] * h ** 2 + left_fit[1] * h + left_fit[2]
-        x_right = right_fit[0] * h ** 2 + right_fit[1] * h + right_fit[2]
-
-        lane_width = x_right - x_left
-        lane_center = x_left + lane_width / 2.0
-
-        x_vehicle = w / 2.0
-
-        x_vehicle_off_center = x_vehicle - lane_center
-        x_vehicle_off_center_m = x_vehicle_off_center * self.cfg.xm_per_pix
-
-        if self.cfg.debug:
-            print("starting pos of lane, left: {}, right: {}".format(
-                x_left,x_right))
-            print("lane center: {}, vehicle pos: {}".format(
-                lane_center, x_vehicle))
-            print("vehicle is {:.4f}m {} of center".format(
-                abs(x_vehicle_off_center_m),
-                "left" if x_vehicle_off_center < 0 else "right"))
-
-        return x_vehicle_off_center_m
+    # def vehicle_pos_wrt_lane_center(self, img, left_fit, right_fit):
+    #     """
+    #     Finds position of the vehicle with respect to lane center
+    #
+    #     1. Find starting (closest to the vehicle) points of the lane (x_left, h) and (x_right, h)
+    #         1. Intersection of the left lane line with bottom of the image gives us starting point of left lane, i.e. (x_left, h)
+    #         2. Intersection of the right lane line with bottom of the image gives us starting point of left lane, i.e. (x_right, h)
+    #     2. Find center of the vehicle, assuming vehicle to be located at the center of the image.
+    #     3. Find position of vehicle wrt lane center
+    #     """
+    #
+    #     warped = img.image_for_stage('perspectiveTransform')
+    #     h, w = warped.shape
+    #
+    #     x_left = left_fit[0] * h ** 2 + left_fit[1] * h + left_fit[2]
+    #     x_right = right_fit[0] * h ** 2 + right_fit[1] * h + right_fit[2]
+    #
+    #     lane_width = x_right - x_left
+    #     lane_center = x_left + lane_width / 2.0
+    #
+    #     x_vehicle = w / 2.0
+    #
+    #     x_vehicle_off_center = x_vehicle - lane_center
+    #     x_vehicle_off_center_m = x_vehicle_off_center * self.cfg.xm_per_pix
+    #
+    #     if self.cfg.debug:
+    #         print("starting pos of lane, left: {}, right: {}".format(
+    #             x_left,x_right))
+    #         print("lane center: {}, vehicle pos: {}".format(
+    #             lane_center, x_vehicle))
+    #         print("vehicle is {:.4f}m {} of center".format(
+    #             abs(x_vehicle_off_center_m),
+    #             "left" if x_vehicle_off_center < 0 else "right"))
+    #
+    #     return x_vehicle_off_center_m
 
     def detect_lane_lines(self, img):
         # detect lane pixels
+
         left_lane, right_lane = self.detect_lane_pixels(img)
-        # img.lane = {
-        #     'left': {
-        #         'pixels': left_lane
-        #     },
-        #     'right': {
-        #         'pixels': right_lane
-        #     }
-        # }
 
         # fit polynomial around lane pixels to get approximation for lane lines
         leftx, left_yvals = xyvals_from_list(left_lane)
@@ -313,102 +308,41 @@ class ImageProcessor(object):
 
         # Fit a second order polynomial
         left_fit = np.polyfit(left_yvals, leftx, 2)
-        # left_fitx = left_fit[0] * left_yvals ** 2 +\
-        #             left_fit[1] * left_yvals + left_fit[2]
 
         right_fit = np.polyfit(right_yvals, rightx, 2)
-        # right_fitx = right_fit[0] * right_yvals ** 2 +\
-        #              right_fit[1] * right_yvals + right_fit[2]
 
-        # img.lane['left'].update({
-        #     'x': leftx,
-        #     'yvals': left_yvals,
-        #     'fit': left_fit
-        # })
         img.left_lane.yvals = left_yvals
         img.left_lane.fit = left_fit
         img.left_lane.x = leftx
 
-        # img.lane['right'].update({
-        #     'x': rightx,
-        #     'yvals': right_yvals,
-        #     'fit': right_fit
-        # })
         img.right_lane.yvals = right_yvals
         img.right_lane.fit = right_fit
         img.right_lane.x = rightx
 
         img.detected = True
-        # TODO: write debug step to write an image with drawn fitted lane lines
+        # DIAGNOSTIC_TODO: write debug step to write an image with drawn
+        # fitted lane lines
 
     def curvature_and_vehicle_pos(self, img):
+        """
+        determines radius of curvature of left and right lanes and position
+        of the vehicle wrt lane center
+        """
+
         img.lane_curvature()
         img.vehicle_pos_wrt_lane_center()
         img.dist_bw_lanes()
 
-        return
-
-        # leftx = img.lane['left']['x']
-        # left_yvals = img.lane['left']['yvals']
-        # left_fit = img.lane['left']['fit']
-        leftx = img.left_lane.x
-        left_yvals = img.left_lane.yvals
-        left_fit = img.left_lane.fit
-
-        # rightx = img.lane['right']['x']
-        # right_yvals = img.lane['right']['yvals']
-        # right_fit = img.lane['right']['fit']
-        rightx = img.right_lane.x
-        right_yvals = img.right_lane.yvals
-        right_fit = img.right_lane.fit
-
-        # find curvature
-        left_y_eval = np.max(left_yvals)
-        right_y_eval = np.max(right_yvals)
-
-        left_yvals2 = left_yvals * self.cfg.ym_per_pix
-        right_yvals2 = right_yvals * self.cfg.ym_per_pix
-
-        left_fit_cr = np.polyfit(left_yvals2, leftx * self.cfg.xm_per_pix, 2)
-        right_fit_cr = np.polyfit(right_yvals2, rightx * self.cfg.xm_per_pix, 2)
-
-        left_curverad = ((1 + (
-        2 * left_fit_cr[0] * left_y_eval + left_fit_cr[1]) ** 2) ** 1.5) \
-                        / np.absolute(2 * left_fit_cr[0])
-
-        right_curverad = ((1 + (
-        2 * right_fit_cr[0] * right_y_eval + right_fit_cr[1]) ** 2) ** 1.5) \
-                         / np.absolute(2 * right_fit_cr[0])
-
-        turn_dir = 'left' if left_curverad < right_curverad else 'right'
-        curverad = min(left_curverad, right_curverad)
-
-        img.turn_dir = turn_dir
-        img.curverad = curverad
-
-        # pos of vehicle wrt center
-        pos_off_center = self.vehicle_pos_wrt_lane_center(img, left_fit,
-                                                          right_fit)
-        img.pos_off_center = pos_off_center
-
-        # img.lane['left']['curverad'] = left_curverad
-        # img.lane['right']['curverad'] = right_curverad
-        # img.lane.update({
-        #     'turn_dir': turn_dir,
-        #     'curverad': curverad,
-        #     'pos_off_center': pos_off_center
-        # })
-        img.left_lane.curverad = left_curverad
-        img.right_lane.curverad = right_curverad
-
     def warp_back(self, img, left_fit=None, left_yvals=None, right_fit=None,
                   right_yvals=None, curverad=None, pos_off_center=None):
+        """
+        draws detected lane lines on undistorted image and does a reverse
+        perspective transformation
+        """
 
         warped = img.image_for_stage('perspectiveTransform')
         h, w = warped.shape
 
-        # left_fit = img.lane['left']['fit']
-        # left_yvals = img.lane['left']['yvals']
         if left_fit is None:
             left_fit = img.left_lane.fit
         if left_yvals is None:
@@ -416,8 +350,6 @@ class ImageProcessor(object):
         left_fitx = left_fit[0] * left_yvals ** 2 + \
                     left_fit[1] * left_yvals + left_fit[2]
 
-        # right_fit = img.lane['right']['fit']
-        # right_yvals = img.lane['right']['yvals']
         if right_fit is None:
             right_fit = img.right_lane.fit
         if right_yvals is None:
@@ -449,8 +381,6 @@ class ImageProcessor(object):
         undist = img.image_for_stage('undistorted')
         result = cv2.addWeighted(undist, 1, newwarp, 0.3, 0)
 
-        # curverad = img.lane['curverad']
-        # pos_off_center = img.lane['pos_off_center']
         if curverad is None:
             curverad = img.curverad
         if pos_off_center is None:
@@ -490,7 +420,6 @@ class ImageProcessor(object):
             self.cfg.debug = bool(debug)
 
         if self.cfg.debug:
-            # cv2.imwrite("{}/{}.jpg".format(prefix, img.name), img.value)
             plt.imsave("{}/{}.jpg".format(self.cfg.debugPrefix, img.name),
                        img.value, cmap='gray')
 
@@ -523,12 +452,7 @@ class ImageProcessor(object):
         #     )
         # )
 
-        # Output visual display of the lane boundaries and numerical estimation
-        # of lane curvature and vehicle position.
         return img
-
-    def regionMaskForLaneLines(self, img):
-        pass
 
     @classmethod
     def getImageProcessor(cls):
